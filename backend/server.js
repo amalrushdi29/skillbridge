@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import mongoose from 'mongoose'
 import config from './config.js'
+import authRoutes from './routes/authRoutes.js'
 
 const app = express()
 
@@ -13,6 +14,9 @@ app.use(express.json())
 app.get('/', (req, res) => {
   res.json({ message: 'SkillBridge API is running! 🚀' })
 })
+
+// Routes
+app.use('/api/auth', authRoutes)
 
 // Connect to MongoDB and start server
 mongoose.connect(config.mongoURI)
