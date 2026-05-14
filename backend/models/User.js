@@ -25,10 +25,19 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "graduate", "professional"],
       default: "student",
     },
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpire: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
 
+// Hash password before saving
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);

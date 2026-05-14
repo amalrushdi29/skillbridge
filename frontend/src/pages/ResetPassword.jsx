@@ -1,33 +1,32 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useNavigate, useParams } from "react-router-dom";
 import config from "../config";
 
-const Login = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+const ResetPassword = () => {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { token } = useParams();
   const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const res = await fetch(`${config.apiUrl}/auth/login`, {
-        method: "POST",
+      const res = await fetch(`${config.apiUrl}/auth/reset-password/${token}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ password }),
       });
 
       const data = await res.json();
@@ -37,8 +36,7 @@ const Login = () => {
         return;
       }
 
-      login(data);
-      navigate("/dashboard");
+      navigate("/login");
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -49,9 +47,12 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
-          Welcome Back to SkillBridge
+        <h2 className="text-2xl font-bold text-center text-blue-600 mb-2">
+          Reset Password
         </h2>
+        <p className="text-center text-gray-500 text-sm mb-6">
+          Enter your new password below
+        </p>
 
         {error && (
           <div className="bg-red-100 text-red-600 p-3 rounded-lg mb-4 text-sm">
@@ -62,31 +63,33 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
+              New Password
             </label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={6}
+              autoComplete="new-password"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="amal@example.com"
+              placeholder="Min 6 characters"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+              Confirm New Password
             </label>
             <input
               type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              minLength={6}
+              autoComplete="new-password"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your password"
+              placeholder="Repeat new password"
             />
           </div>
 
@@ -95,28 +98,12 @@ const Login = () => {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Resetting..." : "Reset Password"}
           </button>
-
-          <div className="text-right">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Forgot Password?
-            </Link>
-          </div>
         </form>
-
-        <p className="text-center text-sm text-gray-600 mt-4">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 font-medium hover:underline">
-            Register
-          </Link>
-        </p>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default ResetPassword;
