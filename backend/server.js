@@ -3,6 +3,7 @@ import cors from 'cors'
 import mongoose from 'mongoose'
 import config from './config.js'
 import authRoutes from './routes/authRoutes.js'
+import profileRoutes from './routes/profileRoutes.js' 
 
 const app = express()
 
@@ -17,6 +18,7 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/profile', profileRoutes) 
 
 // Connect to MongoDB and start server
 mongoose.connect(config.mongoURI)

@@ -3,6 +3,7 @@ import Register from "./pages/Register.jsx";
 import Login from "./pages/Login.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import Profile from "./pages/Profile.jsx"; 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 const Dashboard = () => {
@@ -31,6 +32,14 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        /> {}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

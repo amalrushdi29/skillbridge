@@ -25,6 +25,49 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "graduate", "professional"],
       default: "student",
     },
+
+    // --- Profile Fields ---
+    avatar: {
+      type: String,
+      default: "",
+    },
+    bio: {
+      type: String,
+      default: "",
+      maxlength: 300,
+    },
+    location: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    yearsOfExperience: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    targetJobRole: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    careerObjectives: {
+      type: String,
+      default: "",
+      maxlength: 500,
+    },
+    linkedinUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    githubUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    // --- Auth Fields ---
     resetPasswordToken: {
       type: String,
       default: null,
