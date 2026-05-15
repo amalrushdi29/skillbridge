@@ -11,7 +11,10 @@ const config = {
     port: process.env.MAILTRAP_PORT,
     user: process.env.MAILTRAP_USER,
     pass: process.env.MAILTRAP_PASS,
-  }
+  },
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME, 
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,     
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET, 
 }
 
 export default config

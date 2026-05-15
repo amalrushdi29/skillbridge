@@ -19,6 +19,11 @@ const Profile = () => {
     githubUrl: "",
   });
 
+  const [avatar, setAvatar] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -44,6 +49,7 @@ const Profile = () => {
           linkedinUrl: data.linkedinUrl || "",
           githubUrl: data.githubUrl || "",
         });
+        setAvatar(data.avatar || "");
       } catch (error) {
         setMessage({ type: "error", text: "Failed to load profile" });
       } finally {
@@ -53,6 +59,53 @@ const Profile = () => {
 
     fetchProfile();
   }, []);
+
+  // Handle avatar file selection
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Show preview immediately
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  // Handle avatar upload
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) return;
+
+    setUploadingAvatar(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      const formDataObj = new FormData();
+      formDataObj.append("avatar", avatarFile);
+
+      const res = await fetch(`${config.apiUrl}/upload/avatar`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: formDataObj,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage({ type: "error", text: data.message });
+        return;
+      }
+
+      setAvatar(data.avatar);
+      setAvatarFile(null);
+      setAvatarPreview("");
+      setMessage({ type: "success", text: "Avatar uploaded successfully!" });
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to upload avatar" });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   // Handle input changes
   const handleChange = (e) => {
@@ -122,6 +175,59 @@ const Profile = () => {
             {message.text}
           </div>
         )}
+
+        {/* Avatar Section */}
+        <div className="flex flex-col items-center mb-8">
+
+          {/* Avatar Preview */}
+          <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-3">
+            {avatarPreview ? (
+              <img
+                src={avatarPreview}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            ) : avatar ? (
+              <img
+                src={avatar}
+                alt="Avatar"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl">
+                👤
+              </div>
+            )}
+          </div>
+
+          {/* File Input */}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange}
+            className="hidden"
+            id="avatarInput"
+          />
+          <label
+            htmlFor="avatarInput"
+            className="text-sm text-blue-600 cursor-pointer hover:underline mb-2"
+          >
+            Choose Photo
+          </label>
+
+          {/* Upload Button — only shows after selecting a file */}
+          {avatarFile && (
+            <button
+              type="button"
+              onClick={handleAvatarUpload}
+              disabled={uploadingAvatar}
+              className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              {uploadingAvatar ? "Uploading..." : "Upload Photo"}
+            </button>
+          )}
+
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
 
