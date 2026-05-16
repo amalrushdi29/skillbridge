@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { Pencil, Trash2, Camera } from "lucide-react";
 import config from "../config.js";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -21,12 +22,37 @@ const Profile = () => {
 
   const [avatar, setAvatar] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState("");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+
+  const fileInputRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Auto dismiss message after 4 seconds
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ type: "", text: "" });
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Fetch profile on page load
   useEffect(() => {
@@ -56,30 +82,26 @@ const Profile = () => {
         setLoading(false);
       }
     };
-
     fetchProfile();
   }, []);
 
   // Handle avatar file selection
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Show preview immediately
     setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
+    setShowDropdown(false);
+    await handleAvatarUpload(file);
   };
 
   // Handle avatar upload
-  const handleAvatarUpload = async () => {
-    if (!avatarFile) return;
-
+  const handleAvatarUpload = async (file) => {
     setUploadingAvatar(true);
     setMessage({ type: "", text: "" });
 
     try {
       const formDataObj = new FormData();
-      formDataObj.append("avatar", avatarFile);
+      formDataObj.append("avatar", file);
 
       const res = await fetch(`${config.apiUrl}/upload/avatar`, {
         method: "POST",
@@ -98,12 +120,38 @@ const Profile = () => {
 
       setAvatar(data.avatar);
       setAvatarFile(null);
-      setAvatarPreview("");
+      updateUser({ avatar: data.avatar });
       setMessage({ type: "success", text: "Avatar uploaded successfully!" });
     } catch (error) {
       setMessage({ type: "error", text: "Failed to upload avatar" });
     } finally {
       setUploadingAvatar(false);
+    }
+  };
+
+  // Handle avatar remove
+  const handleAvatarRemove = async () => {
+    setShowDropdown(false);
+    try {
+      const res = await fetch(`${config.apiUrl}/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ avatar: "" }),
+      });
+
+      if (!res.ok) {
+        setMessage({ type: "error", text: "Failed to remove avatar" });
+        return;
+      }
+
+      setAvatar("");
+      updateUser({ avatar: "" });
+      setMessage({ type: "success", text: "Avatar removed successfully!" });
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to remove avatar" });
     }
   };
 
@@ -135,6 +183,7 @@ const Profile = () => {
         return;
       }
 
+      updateUser({ name: formData.name });
       setMessage({ type: "success", text: "Profile updated successfully!" });
     } catch (error) {
       setMessage({ type: "error", text: "Something went wrong" });
@@ -146,19 +195,41 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500 text-lg">Loading profile...</p>
+        <p className="text-gray-500 dark:text-gray-400 text-lg">
+          Loading profile...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow p-8">
+    <div className="max-w-2xl mx-auto">
+
+      {/* View Photo Modal */}
+      {showModal && avatar && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => setShowModal(false)}
+        >
+          <div className="w-72 h-72 rounded-full overflow-hidden border-4 border-white shadow-2xl">
+            <img
+              src={avatar}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Card */}
+      <div className="bg-white dark:bg-[#1E293B] rounded-2xl shadow p-8">
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">My Profile</h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+            My Profile
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
             Keep your profile updated to get accurate skill gap results
           </p>
         </div>
@@ -168,8 +239,8 @@ const Profile = () => {
           <div
             className={`mb-6 px-4 py-3 rounded-lg text-sm font-medium ${
               message.type === "success"
-                ? "bg-green-50 text-green-700 border border-green-200"
-                : "bg-red-50 text-red-700 border border-red-200"
+                ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
+                : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
             }`}
           >
             {message.text}
@@ -178,54 +249,76 @@ const Profile = () => {
 
         {/* Avatar Section */}
         <div className="flex flex-col items-center mb-8">
+          <div className="relative" ref={dropdownRef}>
 
-          {/* Avatar Preview */}
-          <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 mb-3">
-            {avatarPreview ? (
-              <img
-                src={avatarPreview}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-            ) : avatar ? (
-              <img
-                src={avatar}
-                alt="Avatar"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl">
-                👤
+            {/* Avatar Image — click to view */}
+            <div
+              onClick={() => avatar && setShowModal(true)}
+              className={`w-24 h-24 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 
+                ${avatar ? "cursor-pointer" : ""}`}
+            >
+              {uploadingAvatar ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <p className="text-xs text-gray-400">Uploading...</p>
+                </div>
+              ) : avatar ? (
+                <img
+                  src={avatar}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-3xl">
+                  👤
+                </div>
+              )}
+            </div>
+
+            {/* Edit Icon */}
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="absolute bottom-0 right-0 w-7 h-7 bg-[#6366F1] rounded-full flex items-center justify-center shadow-md hover:bg-indigo-700 transition"
+            >
+              <Pencil size={12} className="text-white" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {showDropdown && (
+              <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-44 bg-white dark:bg-[#0F172A] rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-10 overflow-hidden">
+
+                {/* Change Photo */}
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                >
+                  <Camera size={15} />
+                  Change Photo
+                </button>
+
+                {/* Remove Photo */}
+                {avatar && (
+                  <button
+                    onClick={handleAvatarRemove}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                  >
+                    <Trash2 size={15} />
+                    Remove Photo
+                  </button>
+                )}
+
               </div>
             )}
+
           </div>
 
-          {/* File Input */}
+          {/* Hidden File Input */}
           <input
             type="file"
             accept="image/*"
             onChange={handleAvatarChange}
             className="hidden"
-            id="avatarInput"
+            ref={fileInputRef}
           />
-          <label
-            htmlFor="avatarInput"
-            className="text-sm text-blue-600 cursor-pointer hover:underline mb-2"
-          >
-            Choose Photo
-          </label>
-
-          {/* Upload Button — only shows after selecting a file */}
-          {avatarFile && (
-            <button
-              type="button"
-              onClick={handleAvatarUpload}
-              disabled={uploadingAvatar}
-              className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              {uploadingAvatar ? "Uploading..." : "Upload Photo"}
-            </button>
-          )}
 
         </div>
 
@@ -233,7 +326,7 @@ const Profile = () => {
 
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Full Name
             </label>
             <input
@@ -241,21 +334,21 @@ const Profile = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
               placeholder="Your full name"
             />
           </div>
 
           {/* Role */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Role
             </label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
             >
               <option value="student">Student</option>
               <option value="graduate">Graduate</option>
@@ -265,7 +358,7 @@ const Profile = () => {
 
           {/* Bio */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Bio
             </label>
             <textarea
@@ -274,14 +367,14 @@ const Profile = () => {
               onChange={handleChange}
               rows={3}
               maxLength={300}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6366F1] resize-none"
               placeholder="Tell us a little about yourself (max 300 characters)"
             />
           </div>
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Location
             </label>
             <input
@@ -289,14 +382,14 @@ const Profile = () => {
               name="location"
               value={formData.location}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
               placeholder="e.g. Kurunegala, Sri Lanka"
             />
           </div>
 
           {/* Years of Experience */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Years of Experience
             </label>
             <input
@@ -305,14 +398,14 @@ const Profile = () => {
               value={formData.yearsOfExperience}
               onChange={handleChange}
               min={0}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
               placeholder="e.g. 2"
             />
           </div>
 
           {/* Target Job Role */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Target Job Role
             </label>
             <input
@@ -320,14 +413,14 @@ const Profile = () => {
               name="targetJobRole"
               value={formData.targetJobRole}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
               placeholder="e.g. Full Stack Developer"
             />
           </div>
 
           {/* Career Objectives */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Career Objectives
             </label>
             <textarea
@@ -336,14 +429,14 @@ const Profile = () => {
               onChange={handleChange}
               rows={4}
               maxLength={500}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6366F1] resize-none"
               placeholder="Describe your career goals (max 500 characters)"
             />
           </div>
 
           {/* LinkedIn */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               LinkedIn URL
             </label>
             <input
@@ -351,14 +444,14 @@ const Profile = () => {
               name="linkedinUrl"
               value={formData.linkedinUrl}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
               placeholder="linkedin.com/in/yourname"
             />
           </div>
 
           {/* GitHub */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               GitHub URL
             </label>
             <input
@@ -366,7 +459,7 @@ const Profile = () => {
               name="githubUrl"
               value={formData.githubUrl}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
               placeholder="github.com/yourusername"
             />
           </div>
@@ -376,14 +469,14 @@ const Profile = () => {
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
+              className="flex-1 bg-[#6366F1] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
             <button
               type="button"
               onClick={() => navigate("/dashboard")}
-              className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
+              className="flex-1 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition"
             >
               Back to Dashboard
             </button>
