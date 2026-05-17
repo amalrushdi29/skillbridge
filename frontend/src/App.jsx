@@ -6,6 +6,7 @@ import ResetPassword from "./pages/ResetPassword.jsx";
 import Profile from "./pages/Profile.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Layout from "./components/Layout.jsx";
+import Skills from "./pages/Skills.jsx";
 
 const Dashboard = () => {
   return (
@@ -44,6 +45,16 @@ const App = () => {
             <ProtectedRoute>
               <Layout pageTitle="Profile">
                 <Profile />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/skills"
+          element={
+            <ProtectedRoute>
+              <Layout pageTitle="Skills">
+                <Skills />
               </Layout>
             </ProtectedRoute>
           }

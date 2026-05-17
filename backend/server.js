@@ -5,6 +5,7 @@ import config from './config.js'
 import authRoutes from './routes/authRoutes.js'
 import profileRoutes from './routes/profileRoutes.js' 
 import uploadRoutes from './routes/uploadRoutes.js'
+import skillRoutes from './routes/skillRoutes.js' 
 
 const app = express()
 
@@ -21,6 +22,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/profile', profileRoutes) 
 app.use('/api/upload', uploadRoutes)
+app.use('/api/skills', skillRoutes)
 
 // Connect to MongoDB and start server
 mongoose.connect(config.mongoURI)

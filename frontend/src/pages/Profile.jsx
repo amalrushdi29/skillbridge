@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Pencil, Trash2, Camera } from "lucide-react";
+import Card from "../components/Card.jsx";
 import config from "../config.js";
 
 const Profile = () => {
@@ -203,8 +204,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-
+    <Card maxWidth="max-w-2xl">
       {/* View Photo Modal */}
       {showModal && avatar && (
         <div
@@ -221,18 +221,15 @@ const Profile = () => {
         </div>
       )}
 
-      {/* Card */}
-      <div className="bg-white dark:bg-[#1E293B] rounded-2xl shadow p-8">
-
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-            My Profile
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            Keep your profile updated to get accurate skill gap results
-          </p>
-        </div>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+          My Profile
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+          Keep your profile updated to get accurate skill gap results
+        </p>
+      </div>
 
         {/* Success / Error Message */}
         {message.text && (
@@ -483,8 +480,7 @@ const Profile = () => {
           </div>
 
         </form>
-      </div>
-    </div>
+    </Card>
   );
 };
 
