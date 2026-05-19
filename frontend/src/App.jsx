@@ -7,6 +7,7 @@ import Profile from "./pages/Profile.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Layout from "./components/Layout.jsx";
 import Skills from "./pages/Skills.jsx";
+import CVUpload from './pages/CVUpload'
 
 const Dashboard = () => {
   return (
@@ -56,6 +57,14 @@ const App = () => {
               <Layout pageTitle="Skills">
                 <Skills />
               </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cv-upload"
+          element={
+            <ProtectedRoute>
+              <CVUpload />
             </ProtectedRoute>
           }
         />

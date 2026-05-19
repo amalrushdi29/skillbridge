@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    cvUrl: {
+      type: String,
+      default: "",
+    },
     bio: {
       type: String,
       default: "",
