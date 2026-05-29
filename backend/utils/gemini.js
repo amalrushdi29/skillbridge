@@ -27,7 +27,7 @@ export const extractSkillsFromText = async (cvText) => {
   - "level": estimate based on context:
     * "Beginner" — mentioned once, no projects
     * "Intermediate" — used in projects
-    * "Advanced" — multiple projects or work experience
+    * "Advanced" — multiple projects or work experiences
   
   CV Text:
   ${cvText}

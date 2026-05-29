@@ -1,0 +1,52 @@
+# IT Salary Predictor — Progress Tracker
+
+## Phase 01 - Setup ✅
+
+### Folder Structure
+salary-predictor/
+├── .gitignore
+├── backend/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   ├── utils/
+│   ├── server.js
+│   └── .env
+├── frontend/
+│   └── src/
+│       ├── App.jsx
+│       └── index.css
+└── ml-service/
+    ├── model/
+    ├── data/
+    ├── venv/
+    ├── app.py
+    ├── train.py
+    └── requirements.txt
+
+### Packages Installed
+- Backend: express, mongoose, dotenv, cors, nodemon
+- Frontend: vite, react, tailwindcss, @tailwindcss/vite
+- ML Service: flask, flask-cors, scikit-learn, pandas, numpy, python-dotenv
+
+### Python Virtual Environment (venv)
+- What: An isolated Python environment just for this project
+- Why: Packages install only here and don't conflict with other projects
+- Where: salary-predictor/ml-service/venv/
+- Activate: .\venv\Scripts\activate
+- Install packages: .\venv\Scripts\pip install packagename
+- Status: Created and all ML packages installed ✅
+
+### Ports
+- React Frontend → 5173
+- Node.js Backend → 5002
+- Python Flask ML → 5003
+
+### GitHub
+- Repo: https://github.com/amalrushdi29/salary-predictor
+- Initial commit pushed ✅
+
+## Phase 02 - Dataset ⬜
+## Phase 03 - ML Model ⬜
+## Phase 04 - Frontend ⬜
+## Phase 05 - Deployment ⬜

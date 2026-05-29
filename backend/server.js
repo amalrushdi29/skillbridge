@@ -7,6 +7,7 @@ import profileRoutes from './routes/profileRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
 import skillRoutes from './routes/skillRoutes.js' 
 import cvRoutes from './routes/cvRoutes.js'
+import mlRoutes from './routes/mlRoutes.js'
 
 const app = express()
 
@@ -25,6 +26,7 @@ app.use('/api/profile', profileRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/skills', skillRoutes)
 app.use('/api/cv', cvRoutes)
+app.use("/api/ml", mlRoutes);
 
 // Connect to MongoDB and start server
 mongoose.connect(config.mongoURI)

@@ -1,0 +1,12 @@
+# Dataset files
+data/
+
+# Virtual environment
+venv/
+
+# Compiled Python files
+__pycache__/
+*.pyc
+
+# Model files (optional - uncomment if you don't want to push models)
+# model/
