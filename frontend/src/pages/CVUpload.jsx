@@ -79,32 +79,33 @@ const token = user?.token
   }
 
   const handleAddSkills = async () => {
-    setAddingSkills(true)
-    let count = 0
+  setAddingSkills(true)
+  let count = 0
 
-    for (const skill of extractedSkills) {
-      try {
-        await axios.post(
+  for (const skill of extractedSkills) {
+    try {
+      await axios.post(
         `${config.apiUrl}/skills`,
-          skill,
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
-        count++
-      } catch (err) {
-        // Skip duplicates silently
-        console.log(`Skipped duplicate: ${skill.name}`)
-      }
+        skill,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      count++
+      // Small delay between each request to avoid overwhelming the server
+      await new Promise(resolve => setTimeout(resolve, 100))
+    } catch (err) {
+      console.log(`Skipped: ${skill.name} — ${err.response?.data?.message}`)
     }
-
-    setAddedCount(count)
-    setAddingSkills(false)
-    setMessage({
-      type: 'success',
-      text: `${count} skills added to your profile! Redirecting to Skills...`,
-    })
-
-    setTimeout(() => navigate('/skills'), 2000)
   }
+
+  setAddedCount(count)
+  setAddingSkills(false)
+  setMessage({
+    type: 'success',
+    text: `${count} skills added to your profile! Redirecting to Skills...`,
+  })
+
+  setTimeout(() => navigate('/skills'), 2000)
+}
 
   const categoryColors = {
     Frontend: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
