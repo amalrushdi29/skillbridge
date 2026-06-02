@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const skillSchema = new mongoose.Schema(
   {
     user: {
@@ -15,9 +16,14 @@ const skillSchema = new mongoose.Schema(
       type: String,
       enum: [
         "Programming Language",
-        "Framework",
+        "Frontend",
+        "Backend",
         "Database",
         "Cloud",
+        "DevOps",
+        "Data Science",
+        "Cybersecurity",
+        "Mobile",
         "Tool",
         "Soft Skill",
         "Other",

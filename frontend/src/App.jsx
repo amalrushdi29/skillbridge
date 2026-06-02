@@ -7,7 +7,8 @@ import Profile from "./pages/Profile.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Layout from "./components/Layout.jsx";
 import Skills from "./pages/Skills.jsx";
-import CVUpload from './pages/CVUpload'
+import CVUpload from "./pages/CVUpload.jsx";
+import SkillGap from "./pages/SkillGap.jsx";
 
 const Dashboard = () => {
   return (
@@ -65,6 +66,16 @@ const App = () => {
           element={
             <ProtectedRoute>
               <CVUpload />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/skill-gap"
+          element={
+            <ProtectedRoute>
+              <Layout pageTitle="Skill Gap">
+                <SkillGap />
+              </Layout>
             </ProtectedRoute>
           }
         />

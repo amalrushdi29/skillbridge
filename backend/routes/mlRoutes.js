@@ -1,6 +1,12 @@
 import express from "express";
 import protect from "../middleware/authMiddleware.js";
-import { predictEmployability, getTopSkills, checkHealth } from "../utils/mlService.js";
+import {
+  predictEmployability,
+  getSkillGap,
+  searchRoles,
+  getTopSkills,
+  checkHealth,
+} from "../utils/mlService.js";
 
 const router = express.Router();
 
@@ -27,6 +33,22 @@ router.get("/top-skills", async (req, res) => {
   }
 });
 
+// GET /api/ml/roles?search=query
+router.get("/roles", protect, async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    if (!search || search.trim().length < 2) {
+      return res.json({ success: true, roles: [], total: 0 });
+    }
+
+    const result = await searchRoles(search.trim());
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/ml/predict
 router.post("/predict", protect, async (req, res) => {
   try {
@@ -37,6 +59,32 @@ router.post("/predict", protect, async (req, res) => {
     }
 
     const result = await predictEmployability(skills, jobType);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/ml/skill-gap
+router.post("/skill-gap", protect, async (req, res) => {
+  try {
+    const { skills, targetRole, yearsOfExperience, jobType } = req.body;
+
+    if (!skills || skills.length === 0) {
+      return res.status(400).json({ error: "Skills are required" });
+    }
+
+    if (!targetRole) {
+      return res.status(400).json({ error: "Target role is required" });
+    }
+
+    const result = await getSkillGap(
+      skills,
+      targetRole,
+      yearsOfExperience || 0,
+      jobType || "full-time"
+    );
+
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });

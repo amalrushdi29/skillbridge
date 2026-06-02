@@ -10,6 +10,23 @@ export const predictEmployability = async (skills, jobType = "full-time") => {
   return response.data;
 };
 
+export const getSkillGap = async (skills, targetRole, yearsOfExperience, jobType = "full-time") => {
+  const response = await axios.post(`${ML_API_URL}/skill-gap`, {
+    skills,
+    targetRole,
+    yearsOfExperience,
+    jobType,
+  });
+  return response.data;
+};
+
+export const searchRoles = async (query) => {
+  const response = await axios.get(`${ML_API_URL}/roles`, {
+    params: { search: query },
+  });
+  return response.data;
+};
+
 export const getTopSkills = async () => {
   const response = await axios.get(`${ML_API_URL}/top-skills`);
   return response.data;
