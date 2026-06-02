@@ -60,6 +60,14 @@ const Skills = () => {
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
 
+  // Search, filter, sort state
+  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [filterLevel, setFilterLevel] = useState("All");
+  const [sortOrder, setSortOrder] = useState("newest");
+
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
   const showMessage = (type, text) => {
     setMessage({ type, text });
     setTimeout(() => setMessage({ type: "", text: "" }), 4000);
@@ -140,6 +148,10 @@ const Skills = () => {
   };
 
   const handleDelete = async (id) => {
+    if (deleteConfirmId !== id) {
+      setDeleteConfirmId(id);
+      return;
+    }
     try {
       const res = await fetch(`${config.apiUrl}/skills/${id}`, {
         method: "DELETE",
@@ -150,11 +162,29 @@ const Skills = () => {
         return;
       }
       setSkills(skills.filter((s) => s._id !== id));
+      setDeleteConfirmId(null);
       showMessage("success", "Skill deleted successfully!");
     } catch (error) {
       showMessage("error", "Failed to delete skill");
     }
   };
+
+    // Filter, search and sort logic
+  const filteredSkills = skills
+    .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((s) => filterCategory === "All" || s.category === filterCategory)
+    .filter((s) => filterLevel === "All" || s.level === filterLevel)
+    .sort((a, b) => {
+      if (sortOrder === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortOrder === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sortOrder === "alphabetical") return a.name.localeCompare(b.name);
+    });
+
+  // Skill count grouped by category
+  const categoryCount = skills.reduce((acc, skill) => {
+    acc[skill.category] = (acc[skill.category] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <Card>
@@ -191,65 +221,126 @@ const Skills = () => {
           >
             {message.text}
           </div>
-        )}
+        )}  
+
+        {/* Search, Filter and Sort */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <input
+            type="text"
+            placeholder="Search skills..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
+          />
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
+          >
+            <option value="All">All Categories</option>
+            {categories.map((c) => <option key={c}>{c}</option>)}
+          </select>
+          <select
+            value={filterLevel}
+            onChange={(e) => setFilterLevel(e.target.value)}
+            className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
+          >
+            <option value="All">All Levels</option>
+            {levels.map((l) => <option key={l}>{l}</option>)}
+          </select>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="alphabetical">Alphabetical</option>
+          </select>
+        </div>
 
         {/* Add Skill Form */}
-        {showForm && (
-          <div className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Add New Skill
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <input
-                type="text"
-                placeholder="Skill name e.g. React.js"
-                value={newSkill.name}
-                onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
-              />
-              <select
-                value={newSkill.category}
-                onChange={(e) => setNewSkill({ ...newSkill, category: e.target.value })}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
-              >
-                {categories.map((c) => <option key={c}>{c}</option>)}
-              </select>
-              <select
-                value={newSkill.level}
-                onChange={(e) => setNewSkill({ ...newSkill, level: e.target.value })}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
-              >
-                {levels.map((l) => <option key={l}>{l}</option>)}
-              </select>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleAdd}
-                className="flex items-center gap-2 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-sm font-medium px-4 py-2 rounded-lg transition"
-              >
-                <Check size={15} /> Save Skill
-              </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 transition"
-              >
-                <X size={15} /> Cancel
-              </button>
-            </div>
-          </div>
-        )}
+            {showForm && (
+              <div className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Add New Skill
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input
+                    type="text"
+                    placeholder="Skill name e.g. React.js"
+                    value={newSkill.name}
+                    onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
+                    className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
+                  />
+                  <select
+                    value={newSkill.category}
+                    onChange={(e) => setNewSkill({ ...newSkill, category: e.target.value })}
+                    className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
+                  >
+                    {categories.map((c) => <option key={c}>{c}</option>)}
+                  </select>
+                  <select
+                    value={newSkill.level}
+                    onChange={(e) => setNewSkill({ ...newSkill, level: e.target.value })}
+                    className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#0F172A] text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
+                  >
+                    {levels.map((l) => <option key={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleAdd}
+                    className="flex items-center gap-2 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+                  >
+                    <Check size={15} /> Save Skill
+                  </button>
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 transition"
+                  >
+                    <X size={15} /> Cancel
+                  </button>
+                </div>
+              </div>
+            )} 
+
+            {/* Category Count */}
+    {skills.length > 0 && (
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(categoryCount).map(([category, count]) => (
+          <span
+            key={category}
+            className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer transition
+              ${filterCategory === category
+                ? "bg-[#6366F1] text-white"
+                : `${categoryColors[category]}`
+              }`}
+            onClick={() =>
+              setFilterCategory(filterCategory === category ? "All" : category)
+            }
+          >
+            {category} ({count})
+          </span>
+        ))}
+      </div>
+    )}
 
         {/* Skills List */}
         {loading ? (
           <p className="text-sm text-gray-400">Loading skills...</p>
-        ) : skills.length === 0 ? (
+        ) : filteredSkills.length === 0 ? (
           <div className="text-center py-20 text-gray-400 dark:text-gray-500">
             <Zap size={40} className="mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No skills added yet. Click "Add Skill" to get started!</p>
+           <p className="text-sm">
+            {skills.length === 0
+              ? `No skills added yet. Click "Add Skill" to get started!`
+              : "No skills match your search or filters."}
+          </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {skills.map((skill) => (
+            {filteredSkills.map((skill) => (
               <div
                 key={skill._id}
                 className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3"
@@ -308,12 +399,30 @@ const Skills = () => {
                         >
                           <Pencil size={15} />
                         </button>
-                        <button
-                          onClick={() => handleDelete(skill._id)}
-                          className="text-gray-400 hover:text-red-500 transition"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        {deleteConfirmId === skill._id ? (
+                          <div className="flex gap-2 items-center">
+                            <span className="text-xs text-gray-600 dark:text-gray-400">Sure?</span>
+                            <button
+                              onClick={() => handleDelete(skill._id)}
+                              className="text-xs text-red-500 hover:text-red-700 font-medium transition"
+                            >
+                              Yes
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmId(null)}
+                              className="text-xs text-gray-400 hover:text-gray-600 transition"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleDelete(skill._id)}
+                            className="text-gray-400 hover:text-red-500 transition"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-2 flex-wrap">
