@@ -9,6 +9,7 @@ import Layout from "./components/Layout.jsx";
 import Skills from "./pages/Skills.jsx";
 import CVUpload from "./pages/CVUpload.jsx";
 import SkillGap from "./pages/SkillGap.jsx";
+import Recommendations from "./pages/Recommendations.jsx";
 
 const Dashboard = () => {
   return (
@@ -76,6 +77,14 @@ const App = () => {
               <Layout pageTitle="Skill Gap">
                 <SkillGap />
               </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recommendations"
+          element={
+            <ProtectedRoute>
+              <Recommendations />
             </ProtectedRoute>
           }
         />

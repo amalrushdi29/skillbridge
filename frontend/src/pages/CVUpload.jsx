@@ -4,6 +4,7 @@ import axios from 'axios'
 import { Upload, FileText, CheckCircle, AlertCircle, Sparkles } from 'lucide-react'
 import Layout from '../components/Layout'
 import Card from '../components/Card'
+import PageHeader from '../components/PageHeader.jsx'
 import config from '../config'
 
 export default function CVUpload() {
@@ -123,12 +124,11 @@ const token = user?.token
       <div className="max-w-3xl mx-auto space-y-6">
 
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">CV Upload</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Upload your CV and let AI extract your skills automatically
-          </p>
-        </div>
+        <PageHeader 
+          icon={FileText} 
+          title="CV Upload" 
+          description="Upload your CV and let AI extract your skills automatically" 
+        />
 
         {/* Upload Card */}
         <Card>

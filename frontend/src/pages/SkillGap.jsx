@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
-import { Search, CheckCircle, XCircle, Info, Loader, Plus, Share2 } from "lucide-react";
+import { Search, CheckCircle, XCircle, Info, Loader, Plus, Share2, BarChart2 } from "lucide-react";
+import PageHeader from "../components/PageHeader.jsx";
 import config from "../config.js";
 
 // ── Extended IT roles list ──
@@ -437,14 +438,11 @@ const SkillGap = () => {
     <div className="max-w-3xl mx-auto space-y-6">
 
       {/* ── Header ── */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-          Skill Gap Analysis
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-          Compare your current skills against real job market requirements
-        </p>
-      </div>
+      <PageHeader 
+        icon={BarChart2} 
+        title="Skill Gap Analysis" 
+        description="Compare your current skills against real job market requirements" 
+      />
 
       {/* ── Message ── */}
       {message.text && (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import Card from "../components/Card.jsx";
+import PageHeader from "../components/PageHeader.jsx";
 import config from "../config.js";
 import { Zap, Plus, Pencil, Trash2, X, Check } from "lucide-react";
 
@@ -187,20 +188,20 @@ const Skills = () => {
   }, {});
 
   return (
-    <Card>
-      <div className="space-y-6">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Zap size={22} className="text-[#6366F1]" />
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-              My Skills
-            </h2>
-            <span className="ml-2 text-sm bg-[#6366F1] text-white px-2 py-0.5 rounded-full">
-              {skills.length}
-            </span>
-          </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <PageHeader 
+            icon={Zap} 
+            title="My Skills" 
+            description="Add and manage your technical abilities" 
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm bg-[#6366F1] text-white px-2 py-0.5 rounded-full">
+            {skills.length}
+          </span>
           <button
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-sm font-medium px-4 py-2 rounded-lg transition"
@@ -209,8 +210,12 @@ const Skills = () => {
             Add Skill
           </button>
         </div>
+      </div>
 
-        {/* Message */}
+      <Card>
+        <div className="space-y-6">
+
+          {/* Message */}
         {message.text && (
           <div
             className={`text-sm px-4 py-2 rounded-lg ${
@@ -441,6 +446,7 @@ const Skills = () => {
         )}
       </div>
     </Card>
+    </div>
   );
 };
 
