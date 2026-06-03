@@ -1,4 +1,4 @@
-import { TYPOGRAPHY } from "../styles/typography.js";
+import { TYPOGRAPHY, COLORS } from "../styles/typography.js";
 
 /**
  * Reusable Page Header Component
@@ -11,7 +11,7 @@ import { TYPOGRAPHY } from "../styles/typography.js";
 export const PageHeader = ({ icon: Icon, title, description }) => (
   <div className="flex items-center gap-3">
     <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 shrink-0">
-      <Icon size={22} className="text-[#6366F1]" />
+      <Icon size={22} style={{ color: COLORS.primary }} />
     </div>
     <div>
       <h1 className={TYPOGRAPHY.pageHeading}>{title}</h1>
