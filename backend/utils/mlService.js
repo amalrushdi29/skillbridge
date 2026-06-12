@@ -36,3 +36,11 @@ export const checkHealth = async () => {
   const response = await axios.get(`${ML_API_URL}/health`);
   return response.data;
 };
+
+export const getDashboardStats = async (targetRole = '') => {
+  const response = await axios.post(`${ML_API_URL}/dashboard-stats`, {
+    targetRole,
+  });
+  return response.data;
+};
+

@@ -1,0 +1,17 @@
+[33mdccb045[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: add PDF export, refresh button, filter by resource type, and total time estimate to recommendations page
+[33m04f22b9[m feat: implement design tokens and reusable PageHeader component
+[33mf35643d[m feat: add AI recommendations page with Gemini learning roadmap and centralized typography system
+[33m18e2431[m feat: add search, filter, sort and delete confirmation to skills page
+[33m589fa08[m feat: add skill gap analysis with ML integration
+[33m1477ded[m fix: add retry logic for Gemini API and delay between skill saves
+[33m2032c6a[m fix: remove model files from git tracking
+[33m2d4ef83[m feat: add ML service with Random Forest model and Flask API
+[33m4d1412e[m feat: add CV upload with Gemini AI skill extraction
+[33me0798db[m feat: add skills management with badge UI
+[33mcfdc0a1[m feat: add dark mode, sidebar, topbar, layout and logout
+[33m47efc6c[m feat: add cloudinary avatar upload to profile
+[33m9f95f9f[m feat: add user profile model, API endpoints and profile page
+[33m1f05ed0[m feat: add forgot and reset password with Mailtrap
+[33m5de8ef6[m feat: add user authentication system
+[33m9f4bdaf[m feat: initial project setup - React, Node.js, MongoDB
+[33m5e997fd[m chore: initial project setup with folder structure and .gitignore

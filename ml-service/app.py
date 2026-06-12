@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
 import numpy as np
+import pandas as pd
 import os
 
 import re
@@ -318,6 +319,126 @@ def search_roles():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+# ─────────────────────────────────────────
+# ROUTE 6 — DASHBOARD STATS
+# ─────────────────────────────────────────
+@app.route('/dashboard-stats', methods=['POST'])
+def dashboard_stats():
+    try:
+        df = pd.read_csv('data/postings2.csv')
+
+        data        = request.get_json() or {}
+        target_role = data.get('targetRole', '').strip()
+
+        # ── Job Type Distribution ──
+        job_type_counts = {}
+        if 'job_type' in df.columns:
+            counts = df['job_type'].dropna().str.strip().str.lower().value_counts()
+            for jtype, count in counts.items():
+                job_type_counts[jtype] = int(count)
+
+        # ── Job Level Distribution ──
+        job_level_counts = {}
+        if 'job level' in df.columns:
+            counts = df['job level'].dropna().str.strip().str.lower().value_counts()
+            for level, count in counts.items():
+                job_level_counts[level] = int(count)
+
+        # ── Top 10 Most Demanded Skills (market wide) ──
+        skill_counts = {}
+        if 'job_skills' in df.columns:
+            for cell in df['job_skills'].dropna():
+                skills = [s.strip().strip("[]'\"").strip().lower() for s in str(cell).split(',')]
+                for skill in skills:
+                    if skill:
+                        skill_counts[skill] = skill_counts.get(skill, 0) + 1
+
+        top_10 = sorted(skill_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+        top_skills_data = [{"skill": s, "count": c} for s, c in top_10]
+
+        # ── Role Specific Top Skills ──
+        role_specific_skills = []
+        if target_role:
+            _, ranked_role_skills = get_role_skills(target_role)
+            role_specific_skills = [
+                {"skill": s, "count": i + 1}
+                for i, s in enumerate(ranked_role_skills[:10])
+            ]
+
+        return jsonify({
+            "success":            True,
+            "jobTypeDistrib":     job_type_counts,
+            "jobLevelDistrib":    job_level_counts,
+            "topSkills":          top_skills_data,
+            "roleSpecificSkills": role_specific_skills,
+            "targetRole":         target_role,
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+# ─────────────────────────────────────────
+# ROUTE 7 — TRENDING JOB ROLES
+# ─────────────────────────────────────────
+@app.route('/trending-roles', methods=['GET'])
+def trending_roles():
+    try:
+        df = pd.read_csv('data/postings2.csv')
+
+        if 'job_title' not in df.columns:
+            return jsonify({"error": "job_title column not found"}), 500
+
+        # ── Role grouping map ──
+        role_groups = {
+            "Software Engineer":         ["software engineer", "sr. software engineer", "software engineer ii", "software engineer iii", "software engineer iv"],
+            "Senior Software Engineer":  ["senior software engineer", "staff software engineer"],
+            "Software Developer":        ["software developer", "senior software developer", "sr. software developer"],
+            "Full Stack Developer":      ["full stack developer", "full-stack developer", "senior full stack developer"],
+            "Frontend Developer":        ["frontend developer", "front end developer", "front-end developer", "senior frontend developer", "ui developer"],
+            "Backend Developer":         ["backend developer", "back end developer", "back-end developer", "senior backend developer"],
+            "Data Engineer":             ["data engineer", "senior data engineer", "lead data engineer"],
+            "Data Scientist":            ["data scientist", "senior data scientist", "staff data scientist"],
+            "DevOps Engineer":           ["devops engineer", "senior devops engineer", "sr. devops engineer"],
+            "Embedded Engineer":         ["embedded software engineer", "senior embedded software engineer", "embedded systems engineer"],
+            "Lead Engineer":             ["lead software engineer", "principal software engineer", "engineering lead"],
+            "Cloud Engineer":            ["cloud engineer", "senior cloud engineer", "cloud architect"],
+            "QA Engineer":               ["qa engineer", "quality assurance engineer", "senior qa engineer", "sdet"],
+            "Mobile Developer":          ["mobile developer", "ios developer", "android developer", "mobile engineer"],
+            "Machine Learning Engineer": ["machine learning engineer", "ml engineer", "senior machine learning engineer"],
+        }
+
+        # ── Count grouped roles ──
+        grouped_counts = {group: 0 for group in role_groups}
+
+        for title in df['job_title'].dropna().str.strip().str.lower():
+            for group, variants in role_groups.items():
+                if any(variant in title for variant in variants):
+                    grouped_counts[group] += 1
+                    break
+
+        # ── Sort and take top 10 ──
+        sorted_roles = sorted(
+            grouped_counts.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        # ── Filter out zero counts ──
+        top_roles = [
+            {"role": r, "count": c}
+            for r, c in sorted_roles
+            if c > 0
+        ][:10]
+
+        return jsonify({
+            "success": True,
+            "roles":   top_roles
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500    
     
 # ─────────────────────────────────────────
 # RUN FLASK SERVER

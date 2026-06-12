@@ -10,18 +10,7 @@ import Skills from "./pages/Skills.jsx";
 import CVUpload from "./pages/CVUpload.jsx";
 import SkillGap from "./pages/SkillGap.jsx";
 import Recommendations from "./pages/Recommendations.jsx";
-
-const Dashboard = () => {
-  return (
-    <Layout pageTitle="Dashboard">
-      <div className="flex items-center justify-center h-96">
-        <h1 className="text-3xl font-bold text-[#6366F1]">
-          Dashboard 🚀 (Coming Soon)
-        </h1>
-      </div>
-    </Layout>
-  );
-};
+import Dashboard from "./pages/Dashboard.jsx";
 
 const App = () => {
   return (

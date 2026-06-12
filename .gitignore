@@ -22,3 +22,7 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Project planning files
+progress.md.txt
+chat-guide_md.txt

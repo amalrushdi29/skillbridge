@@ -6,6 +6,7 @@ import {
   searchRoles,
   getTopSkills,
   checkHealth,
+  getDashboardStats,
 } from "../utils/mlService.js";
 
 const router = express.Router();
@@ -90,5 +91,18 @@ router.post("/skill-gap", protect, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// POST /api/ml/dashboard-stats
+router.post("/dashboard-stats", protect, async (req, res) => {
+  try {
+    const { targetRole } = req.body;
+    const data = await getDashboardStats(targetRole || '');
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 
 export default router;
