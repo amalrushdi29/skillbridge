@@ -11,6 +11,7 @@ import CVUpload from "./pages/CVUpload.jsx";
 import SkillGap from "./pages/SkillGap.jsx";
 import Recommendations from "./pages/Recommendations.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Jobs from "./pages/Jobs.jsx";
 
 const App = () => {
   return (
@@ -74,6 +75,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Recommendations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/jobs"
+          element={
+            <ProtectedRoute>
+              <Jobs />
             </ProtectedRoute>
           }
         />

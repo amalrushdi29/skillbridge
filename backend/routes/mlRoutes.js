@@ -7,6 +7,7 @@ import {
   getTopSkills,
   checkHealth,
   getDashboardStats,
+  getJobs,
 } from "../utils/mlService.js";
 
 const router = express.Router();
@@ -103,6 +104,22 @@ router.post("/dashboard-stats", protect, async (req, res) => {
   }
 });
 
+// POST /api/ml/jobs
+router.post("/jobs", protect, async (req, res) => {
+  try {
+    const { skills, page, search, jobLevel, jobType } = req.body;
+    const result = await getJobs(
+      skills || [],
+      page || 1,
+      search || '',
+      jobLevel || '',
+      jobType || ''
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 export default router;

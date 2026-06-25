@@ -37,6 +37,18 @@ export const checkHealth = async () => {
   return response.data;
 };
 
+
+export const getJobs = async (skills, page = 1, search = '', jobLevel = '', jobType = '') => {
+  const response = await axios.post(`${ML_API_URL}/jobs`, {
+    skills,
+    page,
+    search,
+    jobLevel,
+    jobType,
+  });
+  return response.data;
+};
+
 export const getDashboardStats = async (targetRole = '') => {
   const response = await axios.post(`${ML_API_URL}/dashboard-stats`, {
     targetRole,

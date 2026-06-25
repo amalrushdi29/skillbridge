@@ -441,6 +441,102 @@ def trending_roles():
         return jsonify({"error": str(e)}), 500    
     
 # ─────────────────────────────────────────
+# ROUTE 8 — JOB LISTINGS WITH MATCH %
+# ─────────────────────────────────────────
+@app.route('/jobs', methods=['POST'])
+def get_jobs():
+    try:
+        df = pd.read_csv('data/postings2.csv')
+
+        data        = request.get_json() or {}
+        user_skills = data.get('skills', [])
+        page        = int(data.get('page', 1))
+        per_page    = 10
+        search      = data.get('search', '').strip().lower()
+        filter_level = data.get('jobLevel', '').strip().lower()
+        filter_type  = data.get('jobType', '').strip().lower()
+
+        # ── Normalize user skills ──
+        user_skills_norm = [normalize_skill(s) for s in user_skills]
+
+        # ── Rename 'job level' column ──
+        df = df.rename(columns={'job level': 'job_level'})
+
+        # ── Drop rows with missing key fields ──
+        df = df.dropna(subset=['job_title', 'job_level', 'job_type', 'job_skills'])
+
+        # ── Apply filters BEFORE calculating match ──
+        if search:
+            df = df[df['job_title'].str.lower().str.contains(search, na=False)]
+
+        if filter_level:
+            df = df[df['job_level'].str.lower().str.strip() == filter_level]
+
+        if filter_type:
+            df = df[df['job_type'].str.lower().str.strip() == filter_type]
+
+        # ── Calculate match percentage for each job ──
+        def calculate_match(job_skills_raw):
+            try:
+                import ast
+                skills_list = ast.literal_eval(job_skills_raw)
+                skills_norm = [normalize_skill(s) for s in skills_list]
+                if not skills_norm:
+                    return 0
+                matched = [s for s in skills_norm if s in user_skills_norm]
+                return round((len(matched) / len(skills_norm)) * 100, 1)
+            except:
+                return 0
+
+        def parse_skills(job_skills_raw):
+            try:
+                import ast
+                skills_list = ast.literal_eval(job_skills_raw)
+                return [s.strip() for s in skills_list]
+            except:
+                return []
+
+        df['match_percentage'] = df['job_skills'].apply(calculate_match)
+
+        # ── Sort by match % descending ──
+        df = df.sort_values('match_percentage', ascending=False)
+
+        # ── Pagination ──
+        total     = len(df)
+        total_pages = max(1, -(-total // per_page))  # ceiling division
+        start     = (page - 1) * per_page
+        end       = start + per_page
+        page_df   = df.iloc[start:end]
+
+        # ── Build response ──
+        jobs = []
+        for idx, row in page_df.iterrows():
+            jobs.append({
+                "id":               int(idx),
+                "jobTitle":         str(row['job_title']),
+                "company":          str(row['company']) if pd.notna(row.get('company')) else '',
+                "location":         str(row['job_location']) if pd.notna(row.get('job_location')) else '',
+                "jobLevel":         str(row['job_level']),
+                "jobType":          str(row['job_type']),
+                "jobSkills":        parse_skills(row['job_skills']),
+                "matchPercentage":  float(row['match_percentage']),
+                "datePosted":       str(row['date_posted']) if pd.notna(row.get('date_posted')) else '',
+                "jobLink":          str(row['job_link']) if pd.notna(row.get('job_link')) else '',
+            })
+
+        return jsonify({
+            "success":    True,
+            "jobs":       jobs,
+            "total":      total,
+            "page":       page,
+            "totalPages": total_pages
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ─────────────────────────────────────────
 # RUN FLASK SERVER
 # ─────────────────────────────────────────
 if __name__ == '__main__':
