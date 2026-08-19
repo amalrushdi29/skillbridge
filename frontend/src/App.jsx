@@ -12,6 +12,7 @@ import SkillGap from "./pages/SkillGap.jsx";
 import Recommendations from "./pages/Recommendations.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Jobs from "./pages/Jobs.jsx";
+import Bookmarks from "./pages/Bookmarks.jsx";
 
 const App = () => {
   return (
@@ -83,6 +84,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Jobs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookmarks"
+          element={
+            <ProtectedRoute>
+              <Bookmarks />
             </ProtectedRoute>
           }
         />

@@ -9,6 +9,7 @@ import skillRoutes from './routes/skillRoutes.js'
 import cvRoutes from './routes/cvRoutes.js'
 import mlRoutes from './routes/mlRoutes.js'
 import recommendationRoutes from "./routes/recommendationRoutes.js";
+import bookmarkRoutes from "./routes/bookmarkRoutes.js";
 
 const app = express()
 
@@ -29,6 +30,7 @@ app.use('/api/skills', skillRoutes)
 app.use('/api/cv', cvRoutes)
 app.use("/api/ml", mlRoutes);
 app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
 
 // Connect to MongoDB and start server
 mongoose.connect(config.mongoURI)

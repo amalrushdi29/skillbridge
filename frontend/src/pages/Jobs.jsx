@@ -1,37 +1,21 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
-  Search,
-  MapPin,
-  Building2,
-  Briefcase,
-  ExternalLink,
-  Bookmark,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  X,
+  Search, MapPin, Building2, Briefcase, ExternalLink,
+  Bookmark, ChevronLeft, ChevronRight, Filter, X,
 } from "lucide-react";
 import Layout from "../components/Layout.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import config from "../config.js";
 
-// ─────────────────────────────────────────
-// CONSTANTS
-// ─────────────────────────────────────────
-const JOB_LEVELS = [
-  "Associate",
-  "Mid senior",
-];
-
-const JOB_TYPES = ["Remote", "Hybrid", "Onsite"];
+const JOB_LEVELS = ["Associate", "Mid senior"];
+const JOB_TYPES  = ["Remote", "Hybrid", "Onsite"];
 
 const MATCH_COLORS = {
-  high:   { bg: "bg-green-100 dark:bg-green-900/30",   text: "text-green-700 dark:text-green-400",   label: "Great Match"  },
-  medium: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400", label: "Good Match"   },
-  low:    { bg: "bg-red-100 dark:bg-red-900/30",       text: "text-red-700 dark:text-red-400",       label: "Low Match"    },
+  high:   { bg: "bg-green-100 dark:bg-green-900/30",   text: "text-green-700 dark:text-green-400",   label: "Great Match" },
+  medium: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400", label: "Good Match"  },
+  low:    { bg: "bg-red-100 dark:bg-red-900/30",       text: "text-red-700 dark:text-red-400",       label: "Low Match"   },
 };
 
 const getMatchColor = (pct) => {
@@ -41,15 +25,16 @@ const getMatchColor = (pct) => {
 };
 
 // ─────────────────────────────────────────
-// JOB CARD COMPONENT
+// JOB CARD
 // ─────────────────────────────────────────
-const JobCard = ({ job }) => {
-  const match = getMatchColor(job.matchPercentage);
+const JobCard = ({ job, bookmarkedIds, onToggleBookmark }) => {
+  const match        = getMatchColor(job.matchPercentage);
+  const isBookmarked = bookmarkedIds.includes(job.id);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow duration-200">
 
-      {/* Top Row — Title + Bookmark + Match */}
+      {/* Top Row */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-gray-900 dark:text-white text-base leading-snug line-clamp-2">
@@ -62,29 +47,33 @@ const JobCard = ({ job }) => {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {/* Match Badge */}
           <span className={`text-xs font-semibold px-2 py-1 rounded-full ${match.bg} ${match.text}`}>
             {job.matchPercentage}% {match.label}
           </span>
 
-          {/* Bookmark Icon — functionality in Chat 11 */}
-          <button className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
-            <Bookmark size={16} />
+          {/* Bookmark Button */}
+          <button
+            onClick={() => onToggleBookmark(job)}
+            className={`p-1.5 rounded-lg transition-colors ${
+              isBookmarked
+                ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30"
+                : "text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+            }`}
+          >
+            <Bookmark size={16} fill={isBookmarked ? "currentColor" : "none"} />
           </button>
         </div>
       </div>
 
-      {/* Meta Row — Location, Level, Type */}
+      {/* Meta Row */}
       <div className="flex flex-wrap gap-2 mb-3">
         {job.location && (
           <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-            <MapPin size={11} />
-            {job.location}
+            <MapPin size={11} /> {job.location}
           </span>
         )}
         <span className="flex items-center gap-1 text-xs bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full">
-          <Briefcase size={11} />
-          {job.jobLevel}
+          <Briefcase size={11} /> {job.jobLevel}
         </span>
         <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
           {job.jobType}
@@ -94,10 +83,7 @@ const JobCard = ({ job }) => {
       {/* Skills */}
       <div className="flex flex-wrap gap-1.5 mb-4">
         {job.jobSkills.slice(0, 6).map((skill, i) => (
-          <span
-            key={i}
-            className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-md"
-          >
+          <span key={i} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-md">
             {skill}
           </span>
         ))}
@@ -108,7 +94,7 @@ const JobCard = ({ job }) => {
         )}
       </div>
 
-      {/* Bottom Row — Date + View Link */}
+      {/* Bottom Row */}
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-400 dark:text-gray-500">
           {job.datePosted || "Date unknown"}
@@ -133,48 +119,59 @@ const JobCard = ({ job }) => {
 // ─────────────────────────────────────────
 const Jobs = () => {
   const { user } = useAuth();
-  const navigate  = useNavigate();
 
-  // ── State ──
-  const [jobs,        setJobs]        = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState("");
-  const [userSkills,  setUserSkills]  = useState([]);
-  const [page,        setPage]        = useState(1);
-  const [totalPages,  setTotalPages]  = useState(1);
-  const [total,       setTotal]       = useState(0);
-  const [search,      setSearch]      = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [jobLevel,    setJobLevel]    = useState("");
-  const [jobType,     setJobType]     = useState("");
+  const [jobs,          setJobs]          = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState("");
+  const [userSkills,    setUserSkills]    = useState([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState([]);
+  const [page,          setPage]          = useState(1);
+  const [totalPages,    setTotalPages]    = useState(1);
+  const [total,         setTotal]         = useState(0);
+  const [search,        setSearch]        = useState("");
+  const [searchInput,   setSearchInput]   = useState("");
+  const [jobLevel,      setJobLevel]      = useState("");
+  const [jobType,       setJobType]       = useState("");
 
-  // ── Fetch user skills first ──
+  const token = user?.token;
+
+  // ── Fetch user skills ──
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const token = user?.token;
         const res = await axios.get(`${config.apiUrl}/skills`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const skillNames = res.data.map((s) => s.name);
-        setUserSkills(skillNames);
-      } catch (err) {
-        console.error("Failed to fetch skills:", err);
+        setUserSkills(res.data.map((s) => s.name));
+      } catch {
         setUserSkills([]);
       }
     };
+    if (token) fetchSkills();
+  }, [token]);
 
-    if (user?.token) fetchSkills();
-  }, [user]);
+  // ── Fetch bookmarked IDs ──
+  useEffect(() => {
+    const fetchIds = async () => {
+      try {
+        const res = await axios.get(`${config.apiUrl}/bookmarks/ids`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setBookmarkedIds(res.data);
+      } catch {
+        setBookmarkedIds([]);
+      }
+    };
+    if (token) fetchIds();
+  }, [token]);
 
-  // ── Fetch jobs whenever filters/page change ──
+  // ── Fetch jobs ──
   const fetchJobs = useCallback(async () => {
-    if (!user?.token) return;
+    if (!token) return;
     setLoading(true);
     setError("");
     try {
-      const token = user?.token;
-     const res = await axios.post(
+      const res = await axios.post(
         `${config.apiUrl}/ml/jobs`,
         { skills: userSkills, page, search, jobLevel, jobType },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -182,46 +179,68 @@ const Jobs = () => {
       setJobs(res.data.jobs || []);
       setTotalPages(res.data.totalPages || 1);
       setTotal(res.data.total || 0);
-    } catch (err) {
+    } catch {
       setError("Failed to load jobs. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [user, userSkills, page, search, jobLevel, jobType]);
+  }, [token, userSkills, page, search, jobLevel, jobType]);
 
   useEffect(() => {
     if (userSkills.length >= 0) fetchJobs();
   }, [fetchJobs]);
 
-  // ── Handlers ──
-  const handleSearch = () => {
-    setSearch(searchInput.trim());
-    setPage(1);
+  // ── Toggle bookmark ──
+  const handleToggleBookmark = async (job) => {
+    const isBookmarked = bookmarkedIds.includes(job.id);
+    try {
+      if (isBookmarked) {
+        await axios.delete(`${config.apiUrl}/bookmarks/${job.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setBookmarkedIds((prev) => prev.filter((id) => id !== job.id));
+      } else {
+        await axios.post(
+          `${config.apiUrl}/bookmarks`,
+          {
+            jobId:           job.id,
+            jobTitle:        job.jobTitle,
+            company:         job.company,
+            location:        job.location,
+            jobLevel:        job.jobLevel,
+            jobType:         job.jobType,
+            jobSkills:       job.jobSkills,
+            jobLink:         job.jobLink,
+            datePosted:      job.datePosted,
+            matchPercentage: job.matchPercentage,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setBookmarkedIds((prev) => [...prev, job.id]);
+      }
+    } catch (err) {
+      console.error("Bookmark toggle failed:", err);
+    }
   };
 
+  const handleSearch = () => { setSearch(searchInput.trim()); setPage(1); };
+
   const handleClearFilters = () => {
-    setSearchInput("");
-    setSearch("");
-    setJobLevel("");
-    setJobType("");
-    setPage(1);
+    setSearchInput(""); setSearch(""); setJobLevel(""); setJobType(""); setPage(1);
   };
 
   const hasActiveFilters = search || jobLevel || jobType;
 
-  // ─────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────
   return (
     <Layout pageTitle="Job Listings">
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <PageHeader 
-            icon={Briefcase} 
-            title="Job Listings" 
-            description="Matched to your skill profile • Dataset: 2024 LinkedIn listings" 
+          <PageHeader
+            icon={Briefcase}
+            title="Job Listings"
+            description="Matched to your skill profile • Dataset: 2024 LinkedIn listings"
           />
           {total > 0 && (
             <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -232,7 +251,6 @@ const Jobs = () => {
 
         {/* Search + Filters */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-          {/* Search Bar */}
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -253,7 +271,6 @@ const Jobs = () => {
             </button>
           </div>
 
-          {/* Filter Row */}
           <div className="flex flex-wrap items-center gap-2">
             <Filter size={14} className="text-gray-400" />
             <select
@@ -262,9 +279,7 @@ const Jobs = () => {
               className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">All Levels</option>
-              {JOB_LEVELS.map((l) => (
-                <option key={l} value={l.toLowerCase()}>{l}</option>
-              ))}
+              {JOB_LEVELS.map((l) => <option key={l} value={l.toLowerCase()}>{l}</option>)}
             </select>
 
             <select
@@ -273,9 +288,7 @@ const Jobs = () => {
               className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">All Types</option>
-              {JOB_TYPES.map((t) => (
-                <option key={t} value={t.toLowerCase()}>{t}</option>
-              ))}
+              {JOB_TYPES.map((t) => <option key={t} value={t.toLowerCase()}>{t}</option>)}
             </select>
 
             {hasActiveFilters && (
@@ -290,11 +303,11 @@ const Jobs = () => {
         </div>
 
         {/* Dataset Notice */}
-        <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
           ⚠️ Job links are sourced from a 2024 LinkedIn dataset and may no longer be active.
         </p>
 
-        {/* Loading */}
+        {/* Loading Skeleton */}
         {loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[...Array(6)].map((_, i) => (
@@ -302,9 +315,7 @@ const Jobs = () => {
                 <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3" />
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4" />
                 <div className="flex gap-2">
-                  <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-16" />
-                  <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-16" />
-                  <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-16" />
+                  {[...Array(3)].map((_, j) => <div key={j} className="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-16" />)}
                 </div>
               </div>
             ))}
@@ -330,12 +341,16 @@ const Jobs = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {jobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    bookmarkedIds={bookmarkedIds}
+                    onToggleBookmark={handleToggleBookmark}
+                  />
                 ))}
               </div>
             )}
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-3 pt-4">
                 <button
@@ -345,11 +360,9 @@ const Jobs = () => {
                 >
                   <ChevronLeft size={14} /> Prev
                 </button>
-
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   Page {page} of {totalPages.toLocaleString()}
                 </span>
-
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}

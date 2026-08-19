@@ -6,6 +6,8 @@ import pandas as pd
 import os
 
 import re
+import hashlib
+
 
 def normalize_skill(skill):
     """
@@ -511,8 +513,10 @@ def get_jobs():
         # ── Build response ──
         jobs = []
         for idx, row in page_df.iterrows():
+            raw_id = str(row.get('job_link', '')) or f"{row['job_title']}_{row.get('company', '')}_{idx}"
+            stable_id = hashlib.md5(raw_id.encode()).hexdigest()[:16]
             jobs.append({
-                "id":               int(idx),
+                "id":               stable_id,
                 "jobTitle":         str(row['job_title']),
                 "company":          str(row['company']) if pd.notna(row.get('company')) else '',
                 "location":         str(row['job_location']) if pd.notna(row.get('job_location')) else '',
