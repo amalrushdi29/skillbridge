@@ -13,16 +13,54 @@ import Recommendations from "./pages/Recommendations.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Jobs from "./pages/Jobs.jsx";
 import Bookmarks from "./pages/Bookmarks.jsx";
+import PublicNavbar from "./components/PublicNavbar.jsx";
+import Landing from "./pages/Landing.jsx";
+import TrendingSkills from "./pages/TrendingSkills.jsx";
+import JobListings from "./pages/JobListings.jsx";
+import PublicLayout from "./components/PublicLayout.jsx";
+
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         {/* Public Routes */}
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/job-listings" element={<JobListings />} />
+        <Route path="/trending-skills" element={<TrendingSkills />} />
+        <Route path="/" element={<Landing />} />
+        <Route
+          path="/register"
+          element={
+            <PublicLayout>
+              <Register />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicLayout>
+              <Login />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicLayout>
+              <ForgotPassword />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/reset-password/:token"
+          element={
+            <PublicLayout>
+              <ResetPassword />
+            </PublicLayout>
+          }
+        />
+        
 
         {/* Protected Routes */}
         <Route

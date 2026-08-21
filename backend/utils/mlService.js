@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const ML_API_URL = process.env.ML_API_URL || "http://127.0.0.1:5001";
+const ML_API_URL = process.env.ML_API_URL || "http://127.0.0.1:5002";
 
 export const predictEmployability = async (skills, jobType = "full-time") => {
   const response = await axios.post(`${ML_API_URL}/predict`, {

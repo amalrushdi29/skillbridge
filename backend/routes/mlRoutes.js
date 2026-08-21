@@ -35,6 +35,19 @@ router.get("/top-skills", async (req, res) => {
   }
 });
 
+// GET /api/ml/public/trending-skills (no auth required)
+router.get("/public/trending-skills", async (req, res) => {
+  try {
+    const data = await getDashboardStats(""); // no target role needed
+    res.json({
+      success: true,
+      topSkills: data.topSkills,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/ml/roles?search=query
 router.get("/roles", protect, async (req, res) => {
   try {
@@ -114,6 +127,23 @@ router.post("/jobs", protect, async (req, res) => {
       search || '',
       jobLevel || '',
       jobType || ''
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/ml/public/jobs
+router.post("/public/jobs", async (req, res) => {
+  try {
+    const { page, search, jobLevel, jobType } = req.body;
+    const result = await getJobs(
+      [], // no user skills — public visitor, no match %
+      page || 1,
+      search || "",
+      jobLevel || "",
+      jobType || ""
     );
     res.json(result);
   } catch (error) {

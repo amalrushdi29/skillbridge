@@ -544,6 +544,6 @@ def get_jobs():
 # RUN FLASK SERVER
 # ─────────────────────────────────────────
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5001))
-    print(f"🚀 SkillBridge Flask API running on port 5001")
+    port = int(os.environ.get('PORT', 5002))
+    print(f"🚀 SkillBridge Flask API running on port 5002")
     app.run(host='0.0.0.0', port=port, debug=True)

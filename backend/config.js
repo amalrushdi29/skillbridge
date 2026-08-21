@@ -16,7 +16,7 @@ const config = {
   cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
   geminiApiKey: process.env.GEMINI_API_KEY,
-  flaskUrl: process.env.FLASK_URL || 'http://localhost:5001',
+  flaskUrl: process.env.FLASK_URL || 'http://localhost:5002',
 }
 
 export default config
