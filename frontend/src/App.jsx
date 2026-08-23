@@ -18,6 +18,7 @@ import Landing from "./pages/Landing.jsx";
 import TrendingSkills from "./pages/TrendingSkills.jsx";
 import JobListings from "./pages/JobListings.jsx";
 import PublicLayout from "./components/PublicLayout.jsx";
+import Settings from "./pages/Settings.jsx";
 
 
 const App = () => {
@@ -130,6 +131,16 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Bookmarks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Layout pageTitle="Settings">
+                <Settings />
+              </Layout>
             </ProtectedRoute>
           }
         />

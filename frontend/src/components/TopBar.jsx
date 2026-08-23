@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, User, LogOut } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 
 const TopBar = ({ isCollapsed, pageTitle }) => {
@@ -43,16 +43,6 @@ const TopBar = ({ isCollapsed, pageTitle }) => {
 
       {/* Right Side */}
       <div className="flex items-center gap-4">
-
-        {/* Notification Bell */}
-        <button
-          onClick={() => navigate("/notifications")}
-          className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-        >
-          <Bell size={18} className="text-gray-500 dark:text-gray-400" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
-
         {/* Avatar Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
